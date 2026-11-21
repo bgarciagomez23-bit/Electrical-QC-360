@@ -11,7 +11,7 @@ const DEFAULT_CLOUD_URL='https://script.google.com/macros/s/AKfycbzvlHHPYjeK82Tc
 let store={areas:[],equipmentSurvey:[],inspections:[],tests:[],ncs:[],dailyReports:[],materials:[],projects:[{name:'Proyecto demostrativo',site:'Sitio por configurar',status:'En ejecución',progress:68}],releases:[],checkstate:{}};
 try{let saved=JSON.parse(localStorage.getItem('eqc360'));if(saved)store={...store,...saved}}catch(e){}
 let syncingRemote=false, syncTimer=null, remoteVersion=Number(localStorage.getItem('eqc360_remote_version')||0), lastLocalPush=0;
-const firebaseConfig={apiKey:"AIzaSyAWLRr5sfe4n2h10rY8oU5-l_h_rzcK2CsY",authDomain:"electrical-qc-360.firebaseapp.com",projectId:"electrical-qc-360",storageBucket:"electrical-qc-360.firebasestorage.app",messagingSenderId:"201633820707",appId:"1:201633820707:web:263cc1158c18d9904c8196"};
+const firebaseConfig={apiKey:"AIzaSyAWLr5sfe4n2h10rY8oU5-l_h_rzcK2CsY",authDomain:"electrical-qc-360.firebaseapp.com",projectId:"electrical-qc-360",storageBucket:"electrical-qc-360.firebasestorage.app",messagingSenderId:"201633820707",appId:"1:201633820707:web:263cc1158c18d9904c8196"};
 let firebaseApp=null,fbAuth=null,fbDb=null,fbDoc=null,fbUnsubscribe=null,fbSaveTimer=null,fbReady=false,fbApplying=false,fbRemoteVersion=0,fbAuthPromise=null;
 let cloudSyncState='Conectando Firebase…',cloudSyncLast='';
 function persist(){localStorage.setItem('eqc360',JSON.stringify(store));if(!syncingRemote)cloudAutoSync()}
