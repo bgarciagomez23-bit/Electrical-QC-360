@@ -133,7 +133,7 @@ function renderEquipmentSurvey(){store.equipmentSurvey=store.equipmentSurvey||[]
   const name=$('#eqname').value.trim(),type=$('#eqtype').value,loc=$('#eqlocation').value;
   if(!name||!loc){alert('Completa el nombre del equipo y su ubicación.');return}
   const getv=id=>$('#'+id)?$('#'+id).value:'',technical={};
-  ['eqprimary','eqprimarycustom','eqsecondary','eqsecondarycustom','eqkva','eqphases','eqfreq','eqfreqcustom','eqimp','eqimpcustom','eqcool','eqcoolcustom','eqmain','eqmotorpower','eqmotorvoltage','eqmotorphases','eqmotoramps','eqmotorrpm','eqmotorservice','eqmotorins','eqgenkva','eqgenvoltage','eqgenphases','eqgenfreq','eqgenpf','eqgenfuel','eqatsvoltage','eqatsamps','eqatspoles','eqatstype','eqatsnormal','eqatsemergency','equpskva','equpsin','equpsout','equpsaut','equpstype'].forEach(id=>{const el=$('#'+id);if(el&&el.value)technical[id]=el.value});
+  ['eqprimary','eqprimarycustom','eqsecondary','eqsecondarycustom','eqkva','eqphases','eqfreq','eqfreqcustom','eqimp','eqimpcustom','eqcool','eqcoolcustom','eqvoltagecustom','eqbarscustom','eqpolescustom','eqmaincustom','eqmain','eqmotorpower','eqmotorvoltage','eqmotorphases','eqmotoramps','eqmotorrpm','eqmotorservice','eqmotorins','eqgenkva','eqgenvoltage','eqgenphases','eqgenfreq','eqgenpf','eqgenfuel','eqatsvoltage','eqatsamps','eqatspoles','eqatstype','eqatsnormal','eqatsemergency','equpskva','equpsin','equpsout','equpsaut','equpstype'].forEach(id=>{const el=$('#'+id);if(el&&el.value)technical[id]=el.value});
   const voltage=type==='Transformador'?((getv('eqprimary')==='Otro'?getv('eqprimarycustom'):getv('eqprimary'))+' / '+(getv('eqsecondary')==='Otro'?getv('eqsecondarycustom'):getv('eqsecondary'))):getv('eqvoltage')||technical.eqmotorvoltage||technical.eqgenvoltage||technical.eqatsvoltage||technical.equpsin;
   const bars=type==='Transformador'?getv('eqkva')+' kVA':getv('eqbars')||technical.eqmotorpower||technical.eqgenkva||technical.eqatsamps||technical.equpskva;
   const poles=type==='Transformador'?'Fases: '+getv('eqphases')+'; Frecuencia: '+(getv('eqfreq')==='Otro'?getv('eqfreqcustom'):getv('eqfreq'))+'; Impedancia: '+(getv('eqimp')==='Otro'?getv('eqimpcustom'):getv('eqimp'))+'; Tipo: '+(getv('eqcool')==='Otro'?getv('eqcoolcustom'):getv('eqcool')):getv('eqpoles')+'; Interruptor principal: '+getv('eqmain');
@@ -142,7 +142,7 @@ function renderEquipmentSurvey(){store.equipmentSurvey=store.equipmentSurvey||[]
  const setv=(id,v)=>{const el=$('#'+id);if(el&&v!==undefined&&v!==null)el.value=v;};
  setv('eqname',x.name);setv('eqtype',x.type||'Tablero');updateEqType();
  const t=x.technical||{};
- Object.keys(t).forEach(id=>setv(id,t[id]));
+ Object.keys(t).forEach(id=>setv(id,t[id]));if(t.eqvoltage==='Otro'&&!t.eqvoltagecustom)setv('eqvoltagecustom',x.voltage||'');if(t.eqbars==='Otro'&&!t.eqbarscustom)setv('eqbarscustom',x.bars||'');if(t.eqmain==='Otro'&&!t.eqmaincustom)setv('eqmaincustom',(x.poles||'').split('Interruptor principal:').pop().replace(/ A$/,'').trim());
  if(!t.eqvoltage)setv('eqvoltage',x.voltage||'');
  if(!t.eqbars)setv('eqbars',x.bars||'');
  if(!t.eqpoles)setv('eqpoles',x.poles||'');
