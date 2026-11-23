@@ -162,14 +162,29 @@ function renderReminders(){
 function addReminder(){reminderForm({})}
 function editReminder(id){const r=(store.reminders||[]).find(x=>x.id===id);if(r)reminderForm(r)}
 function reminderForm(r){
- const body='<div class="field"><label>Título</label><input id="remTitle" value="'+esc(r.title||'')+'"></div><div class="field"><label>Fecha de cumplimiento</label><input id="remDate" type="date" value="'+esc(r.date||'')+'"></div><div class="field"><label>Área / ubicación</label><input id="remArea" value="'+esc(r.area||'')+'"></div><div class="field"><label>Detalle</label><textarea id="remDetail">'+esc(r.detail||'')+'</textarea></div><div class="field"><label>Observaciones</label><textarea id="remNotes">'+esc(r.notes||'')+'</textarea></div>';
+ const photoBlock='<div class="field"><label>Fotografía del recordatorio</label><input id="remPhotoFile" type="file" accept="image/*" capture="environment" onchange="handleReminderPhoto(event)"><small class="foot">Puedes agregar una imagen desde tu galería o tomar una foto con la cámara.</small><div id="remPhotoPreview" style="margin-top:8px">'+(r.photo?'<img src="'+r.photo+'" style="max-width:100%;max-height:260px;border-radius:10px"><button type="button" class="btn secondary sm" onclick="removeReminderPhoto()">Quitar foto</button>':'')+'</div><input type="hidden" id="remPhotoData" value="'+(r.photo||'')+'"></div>';
+ const body='<div class="field"><label>Título</label><input id="remTitle" value="'+esc(r.title||'')+'"></div><div class="field"><label>Fecha de cumplimiento</label><input id="remDate" type="date" value="'+esc(r.date||'')+'"></div><div class="field"><label>Área / ubicación</label><input id="remArea" value="'+esc(r.area||'')+'"></div>'+photoBlock+'<div class="field"><label>Detalle</label><textarea id="remDetail">'+esc(r.detail||'')+'</textarea></div><div class="field"><label>Observaciones</label><textarea id="remNotes">'+esc(r.notes||'')+'</textarea></div>';
  showModal(r.id?'Editar recordatorio':'Nuevo recordatorio',body,'Guardar',()=>saveReminder(r.id||''));
 }
+function handleReminderPhoto(event){
+ const file=event.target.files&&event.target.files[0];if(!file)return;
+ if(!file.type.startsWith('image/')){alert('Selecciona un archivo de imagen.');return}
+ const reader=new FileReader();reader.onload=function(){
+  const img=new Image();img.onload=function(){
+   const max=1200,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');
+   canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+   canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+   const data=canvas.toDataURL('image/jpeg',0.72);$('#remPhotoData').value=data;
+   $('#remPhotoPreview').innerHTML='<img src="'+data+'" style="max-width:100%;max-height:260px;border-radius:10px"><button type="button" class="btn secondary sm" onclick="removeReminderPhoto()">Quitar foto</button>';
+  };img.onerror=function(){alert('No se pudo cargar la imagen seleccionada.');};img.src=reader.result;
+ };reader.readAsDataURL(file);
+}
+function removeReminderPhoto(){ $('#remPhotoData').value='';$('#remPhotoPreview').innerHTML='';if($('#remPhotoFile'))$('#remPhotoFile').value='';}
 function saveReminder(id){
  const title=$('#remTitle').value.trim();if(!title){alert('Ingresa un título para el recordatorio.');return}
  store.reminders=store.reminders||[];let r=store.reminders.find(x=>x.id===id);
  if(!r){r={id:'rem_'+Date.now(),done:false,createdAt:new Date().toISOString()};store.reminders.push(r)}
- Object.assign(r,{title,date:$('#remDate').value,area:$('#remArea').value.trim(),detail:$('#remDetail').value.trim(),notes:$('#remNotes').value.trim()});
+ Object.assign(r,{title,date:$('#remDate').value,area:$('#remArea').value.trim(),detail:$('#remDetail').value.trim(),notes:$('#remNotes').value.trim(),photo:$('#remPhotoData').value});
  persist();$('#modalback').style.display='none';render('Recordatorios');
 }
 function toggleReminder(id,done){const r=(store.reminders||[]).find(x=>x.id===id);if(r){r.done=done;r.completedAt=done?new Date().toISOString():null;persist();render('Recordatorios')}}
