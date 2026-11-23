@@ -136,7 +136,7 @@ function renderEquipmentSurvey(){store.equipmentSurvey=store.equipmentSurvey||[]
   const voltage=type==='Transformador'?((getv('eqprimary')==='Otro'?getv('eqprimarycustom'):getv('eqprimary'))+' / '+(getv('eqsecondary')==='Otro'?getv('eqsecondarycustom'):getv('eqsecondary'))):getv('eqvoltage')||technical.eqmotorvoltage||technical.eqgenvoltage||technical.eqatsvoltage||technical.equpsin;
   const bars=type==='Transformador'?getv('eqkva')+' kVA':getv('eqbars')||technical.eqmotorpower||technical.eqgenkva||technical.eqatsamps||technical.equpskva;
   const poles=type==='Transformador'?'Fases: '+getv('eqphases')+'; Frecuencia: '+(getv('eqfreq')==='Otro'?getv('eqfreqcustom'):getv('eqfreq'))+'; Impedancia: '+(getv('eqimp')==='Otro'?getv('eqimpcustom'):getv('eqimp'))+'; Tipo: '+(getv('eqcool')==='Otro'?getv('eqcoolcustom'):getv('eqcool')):getv('eqpoles');
-  Object.assign(x,{name,type,voltage,bars,poles,technical,location:loc,notes:$('#eqnotes').value});persist();$('#modalback').style.display='none';render('Levantamiento de equipos');
+  const updated={...x,name,type,voltage,bars,poles,technical,location:loc,area:loc,notes:$('#eqnotes').value};store.equipmentSurvey[i]=updated;persist();$('#modalback').style.display='none';render('Levantamiento de equipos');
  });
  const setv=(id,v)=>{const el=$('#'+id);if(el&&v!==undefined&&v!==null)el.value=v;};
  setv('eqname',x.name);setv('eqtype',x.type||'Tablero');updateEqType();
