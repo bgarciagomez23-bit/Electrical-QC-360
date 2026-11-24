@@ -148,15 +148,33 @@ function renderEquipmentSurvey(){store.equipmentSurvey=store.equipmentSurvey||[]
  const loc=$('eqlocation');if(loc&&x.location&&!Array.from(loc.options).some(o=>o.value===x.location)){const op=document.createElement('option');op.value=x.location;op.textContent=x.location;loc.appendChild(op);}setv('eqlocation',x.location||'');
  setv('eqnotes',x.notes||'');
 }function deleteSurveyEquipment(i){if(!confirm('¿Eliminar este equipo del levantamiento?'))return;store.equipmentSurvey.splice(i,1);persist();render('Levantamiento de equipos')}
+var reminderStatusFilter='all',reminderPersonFilter='all',reminderSort='dateAsc';
+function setReminderFilters(){reminderStatusFilter=$('#remFilterStatus').value;reminderPersonFilter=$('#remFilterPerson').value;reminderSort=$('#remSort').value;render('Recordatorios')}
+function clearReminderFilters(){reminderStatusFilter='all';reminderPersonFilter='all';reminderSort='dateAsc';render('Recordatorios')}
 function renderReminders(){
  store.reminders=store.reminders||[];
- const today=new Date().toISOString().slice(0,10);
- const list=store.reminders.slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
- const pending=list.filter(r=>!r.done), overdue=pending.filter(r=>r.date&&r.date<today), completed=list.filter(r=>r.done);
+ const today=new Date().toISOString().slice(0,10),all=store.reminders.slice();
+ const pending=all.filter(r=>!r.done),overdue=pending.filter(r=>r.date&&r.date<today),completed=all.filter(r=>r.done);
+ const people=[...new Set(all.map(r=>(r.responsible||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+ let list=all.filter(r=>{
+  const status=reminderStatusFilter==='all'||(reminderStatusFilter==='pending'&&!r.done)||(reminderStatusFilter==='overdue'&&!r.done&&r.date&&r.date<today)||(reminderStatusFilter==='completed'&&r.done);
+  const person=reminderPersonFilter==='all'||(r.responsible||'').trim()===reminderPersonFilter;
+  return status&&person;
+ });
+ list.sort((a,b)=>{
+  if(reminderSort==='dateDesc')return (b.date||'').localeCompare(a.date||'');
+  if(reminderSort==='titleAsc')return (a.title||'').localeCompare(b.title||'','es');
+  if(reminderSort==='responsibleAsc')return (a.responsible||'').localeCompare(b.responsible||'','es');
+  return (a.date||'9999').localeCompare(b.date||'9999');
+ });
  return '<div class="welcome"><div><h1>Recordatorios</h1><p>Seguimiento de pendientes, fechas y actividades por completar.</p></div><button class="btn" onclick="addReminder()">＋ Nuevo recordatorio</button></div>'+
- '<div class="cards"><div class="card"><div class="label">Pendientes</div><div class="num">'+pending.length+'</div></div><div class="card"><div class="label">Vencidos</div><div class="num red">'+overdue.length+'</div></div><div class="card"><div class="label">Completados</div><div class="num green">'+completed.length+'</div></div><div class="card"><div class="label">Total</div><div class="num">'+list.length+'</div></div></div>'+
+ '<div class="cards"><div class="card"><div class="label">Pendientes</div><div class="num">'+pending.length+'</div></div><div class="card"><div class="label">Vencidos</div><div class="num red">'+overdue.length+'</div></div><div class="card"><div class="label">Completados</div><div class="num green">'+completed.length+'</div></div><div class="card"><div class="label">Total</div><div class="num">'+all.length+'</div></div></div>'+
+ '<div class="card" style="margin-top:14px"><div class="head"><h2>Filtros y orden</h2><small>'+list.length+' de '+all.length+' recordatorio(s)</small></div><div class="formgrid">'+
+ '<div class="field"><label>Estado</label><select id="remFilterStatus" onchange="setReminderFilters()"><option value="all" '+(reminderStatusFilter==='all'?'selected':'')+'>Todos</option><option value="pending" '+(reminderStatusFilter==='pending'?'selected':'')+'>Pendientes</option><option value="overdue" '+(reminderStatusFilter==='overdue'?'selected':'')+'>Vencidos</option><option value="completed" '+(reminderStatusFilter==='completed'?'selected':'')+'>Completados</option></select></div>'+
+ '<div class="field"><label>Persona responsable</label><select id="remFilterPerson" onchange="setReminderFilters()"><option value="all">Todas las personas</option>'+people.map(p=>'<option value="'+esc(p)+'" '+(reminderPersonFilter===p?'selected':'')+'>'+esc(p)+'</option>').join('')+'</select></div>'+
+ '<div class="field"><label>Ordenar por</label><select id="remSort" onchange="setReminderFilters()"><option value="dateAsc" '+(reminderSort==='dateAsc'?'selected':'')+'>Fecha más próxima</option><option value="dateDesc" '+(reminderSort==='dateDesc'?'selected':'')+'>Fecha más lejana</option><option value="titleAsc" '+(reminderSort==='titleAsc'?'selected':'')+'>Título A–Z</option><option value="responsibleAsc" '+(reminderSort==='responsibleAsc'?'selected':'')+'>Responsable A–Z</option></select></div></div><button class="btn secondary sm" onclick="clearReminderFilters()">Limpiar filtros</button></div>'+
  '<div class="card" style="margin-top:14px"><div class="head"><h2>Lista de recordatorios</h2><small>Checklist de cumplimiento</small></div>'+
- (list.length?list.map(r=>'<div style="display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--line);padding:12px 0"><input type="checkbox" '+(r.done?'checked':'')+' onchange="toggleReminder(\''+r.id+'\',this.checked)" style="margin-top:4px"><div style="flex:1"><b '+(r.done?'style="text-decoration:line-through;color:var(--muted)"':'')+'>'+esc(r.title)+'</b><div class="foot">'+(r.date?'Fecha: '+esc(r.date):'Sin fecha')+(r.area?' · Área: '+esc(r.area):'')+(r.responsible?' · Responsable de liberación: '+esc(r.responsible):'')+'</div>'+(r.detail?'<div style="margin-top:6px">'+esc(r.detail)+'</div>':'')+(r.notes?'<div class="foot" style="margin-top:4px">Observaciones: '+esc(r.notes)+'</div>':'')+'</div><button class="btn secondary sm" onclick="editReminder(\''+r.id+'\')">Editar</button><button class="btn danger sm" onclick="deleteReminder(\''+r.id+'\')">Eliminar</button></div>').join(''):'<p class="foot">No hay recordatorios. Agrega uno con Nuevo recordatorio.</p>')+'</div>';
+ (list.length?list.map(r=>'<div style="display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid var(--line);padding:12px 0"><input type="checkbox" '+(r.done?'checked':'')+' onchange="toggleReminder(\\''+r.id+'\\',this.checked)" style="margin-top:4px"><div style="flex:1"><b '+(r.done?'style="text-decoration:line-through;color:var(--muted)"':'')+'>'+esc(r.title)+'</b><div class="foot">'+(r.date?'Fecha: '+esc(r.date):'Sin fecha')+(r.area?' · Área: '+esc(r.area):'')+(r.responsible?' · Responsable de liberación: '+esc(r.responsible):'')+'</div>'+(r.detail?'<div style="margin-top:6px">'+esc(r.detail)+'</div>':'')+(r.notes?'<div class="foot" style="margin-top:4px">Observaciones: '+esc(r.notes)+'</div>':'')+'</div><button class="btn secondary sm" onclick="editReminder(\\''+r.id+'\\')">Editar</button><button class="btn danger sm" onclick="deleteReminder(\\''+r.id+'\\')">Eliminar</button></div>').join(''):'<p class="foot">No hay resultados para estos filtros.</p>')+'</div>';
 }
 function addReminder(){reminderForm({})}
 function editReminder(id){const r=(store.reminders||[]).find(x=>x.id===id);if(r)reminderForm(r)}
