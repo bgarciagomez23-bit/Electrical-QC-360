@@ -218,12 +218,25 @@ function renderMeasurements(){
 }
 function updateMeasurementField(id,field,value){
  const r=(store.measurements||[]).find(x=>x.id===id);if(!r)return;
- if(field==='date'){const d=value?new Date(value+'T12:00:00').getDay():-1;if(d!==1&&d!==6){alert('La fecha debe ser lunes o sábado.');render('Mediciones');return}r.weekday=d===1?'Lunes':'Sábado'}
+ if(field==='date'&&value){const d=new Date(value+'T12:00:00').getDay();if(d!==1&&d!==6){alert('La fecha debe ser lunes o sábado.');render('Mediciones');return}r.weekday=d===1?'Lunes':'Sábado'}
+ if(field==='date'&&!value)r.weekday='';
  r[field]=value;r.updatedAt=new Date().toISOString();persist();
 }
 function renameMeasurementBoard(oldName,newName){
  newName=(newName||'').trim();if(!newName){alert('El nombre del tablero no puede quedar vacío.');render('Mediciones');return}
  (store.measurements||[]).forEach(r=>{if((r.board||'').trim()===oldName)r.board=newName});
+ persist();render('Mediciones');
+}
+function addMeasurement(){
+ store.measurements=store.measurements||[];
+ const boardName='Nuevo tablero '+(store.measurements.length+1);
+ store.measurements.push({id:'med_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),board:boardName,date:'',weekday:'',meter:'',energy:'',voltage:false,current:false,power:false,observations:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+ persist();render('Mediciones');
+}
+function addMeasurementToBoard(board){
+ store.measurements=store.measurements||[];
+ const existing=store.measurements.find(r=>(r.board||'').trim()===board);
+ store.measurements.push({id:'med_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),board,date:existing?.date||'',weekday:existing?.weekday||'',meter:'',energy:existing?.energy||'',voltage:false,current:false,power:false,observations:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
  persist();render('Mediciones');
 }
 let measurementDraftRows=[];
